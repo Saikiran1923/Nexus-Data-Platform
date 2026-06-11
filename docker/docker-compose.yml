@@ -1,0 +1,10 @@
+services:
+  nexus-api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: nexus-data-platform-api
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=local

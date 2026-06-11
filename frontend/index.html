@@ -1,0 +1,1712 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Nexus Data Platform</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --page-bg: linear-gradient(180deg, #eff4fb 0%, #f4f6f8 100%);
+      --surface: #ffffff;
+      --surface-strong: #f8fafc;
+      --text: #1f2937;
+      --muted: #475569;
+      --primary: #0b7285;
+      --primary-soft: #dbeafe;
+      --accent: #60a5fa;
+      --border: rgba(15, 23, 42, 0.06);
+      --shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
+    }
+
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      margin: 0;
+      min-height: 100vh;
+      background: var(--page-bg);
+      color: var(--text);
+    }
+
+    header {
+      background: #102a43;
+      color: white;
+      padding: 28px 32px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2rem;
+      letter-spacing: 0.02em;
+    }
+
+    header p {
+      margin: 8px 0 0;
+      color: #d1d9e6;
+      max-width: 760px;
+      line-height: 1.6;
+    }
+
+    .container {
+      padding: 30px 32px 40px;
+      max-width: 1350px;
+      margin: 0 auto;
+    }
+
+    .hero-card,
+    .card {
+      background: var(--surface);
+      padding: 24px;
+      margin: 20px 0;
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    .hero-card {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .hero-copy h2 {
+      margin: 0 0 14px;
+      font-size: 2.2rem;
+      line-height: 1.1;
+    }
+
+    .hero-copy p {
+      margin: 0 0 22px;
+      color: #4b5563;
+      line-height: 1.8;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .hero-actions button {
+      min-width: 160px;
+      font-weight: 600;
+      background: var(--primary);
+      color: white;
+      border: none;
+    }
+
+    .btn-tool {
+      min-width: 170px;
+      border-radius: 999px;
+      padding: 14px 22px;
+      letter-spacing: 0.01em;
+    }
+
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .theme-swatch {
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .theme-swatch:hover,
+    .theme-swatch.active {
+      transform: translateY(-1px);
+      border-color: var(--accent);
+    }
+
+    .theme-swatch.ocean {
+      background: linear-gradient(135deg, #0f5674 0%, #2fa0d8 100%);
+    }
+
+    .theme-swatch.sunset {
+      background: linear-gradient(135deg, #f97316 0%, #fb8f3f 100%);
+    }
+
+    .theme-swatch.night {
+      background: linear-gradient(135deg, #10172f 0%, #3c3f5a 100%);
+    }
+
+    .theme-swatch.graphite {
+      background: linear-gradient(135deg, #4b5563 0%, #2d3748 100%);
+    }
+
+    .btn-tableau {
+      background: #f66f2a;
+      color: white;
+    }
+
+    .btn-powerbi {
+      background: #f2c80f;
+      color: #102a43;
+    }
+
+    .btn-tool:hover {
+      filter: brightness(1.05);
+    }
+
+    .tool-card p {
+      margin: 0 0 18px;
+      color: #475569;
+      line-height: 1.75;
+    }
+
+    .tool-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .powerbi-builder {
+      margin-top: 20px;
+      padding: 18px;
+      border-radius: 16px;
+      background: var(--surface-strong);
+      border: 1px solid var(--border);
+    }
+
+    .powerbi-actions {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .visual-picker,
+    .field-pane {
+      border-radius: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 18px;
+    }
+
+    .visual-picker h4,
+    .field-pane h4 {
+      margin: 0 0 18px;
+      font-size: 1rem;
+      color: #0f172a;
+    }
+
+    .visual-icon-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(100px, 1fr));
+      gap: 12px;
+    }
+
+    .visual-icon {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      background: #f8fafc;
+      border: 1px solid #dbeafe;
+      border-radius: 14px;
+      color: #0f172a;
+      cursor: pointer;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+      min-height: 100px;
+      text-align: center;
+    }
+
+    .visual-icon:hover {
+      transform: translateY(-2px);
+      border-color: #93c5fd;
+    }
+
+    .visual-icon.active {
+      background: #e0f2fe;
+      border-color: #60a5fa;
+    }
+
+    .visual-icon span {
+      display: block;
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+    }
+
+    .field-pane .field-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .field-pill {
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: #eef2ff;
+      border: 1px solid #c7d2fe;
+      color: #1e3a8a;
+      font-weight: 600;
+    }
+
+    .powerbi-preview {
+      margin-top: 22px;
+      padding: 18px;
+      border-radius: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+
+    .powerbi-preview h4 {
+      margin: 0 0 14px;
+      font-size: 1rem;
+      color: #0f172a;
+    }
+
+    .preview-card {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      align-items: stretch;
+      padding: 16px;
+      background: #f8fbff;
+      border-radius: 16px;
+      border: 1px solid #dbeafe;
+    }
+
+    .preview-item {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      justify-content: space-between;
+    }
+
+    .preview-item .label {
+      color: #475569;
+      font-size: 0.92rem;
+    }
+
+    .preview-item strong {
+      color: #0b7285;
+      font-size: 1.1rem;
+    }
+
+    .theme-ocean {
+      --page-bg: linear-gradient(180deg, #e8f7ff 0%, #eff8ff 100%);
+      --surface: #ffffff;
+      --surface-strong: #f3fbff;
+      --text: #0f172a;
+      --muted: #475569;
+      --primary: #0f7285;
+      --accent: #38bdf8;
+      --border: #dbeafe;
+    }
+
+    .theme-sunset {
+      --page-bg: linear-gradient(180deg, #fff7ed 0%, #fff1e5 100%);
+      --surface: #ffffff;
+      --surface-strong: #fff6ef;
+      --text: #1f2937;
+      --muted: #475569;
+      --primary: #f97316;
+      --accent: #fb8f3f;
+      --border: #fed7aa;
+    }
+
+    .theme-night {
+      --page-bg: linear-gradient(180deg, #070b18 0%, #131a39 100%);
+      --surface: #111827;
+      --surface-strong: #17203b;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --primary: #8b5cf6;
+      --accent: #38bdf8;
+      --border: #334155;
+    }
+
+    .theme-graphite {
+      --page-bg: linear-gradient(180deg, #f3f4f6 0%, #e2e8f0 100%);
+      --surface: #ffffff;
+      --surface-strong: #eff2f7;
+      --text: #111827;
+      --muted: #475569;
+      --primary: #475569;
+      --accent: #60a5fa;
+      --border: #d1d5db;
+    }
+
+    .task-features-card {
+      padding: 22px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      border: 1px solid #dbeafe;
+    }
+
+    .feature-tag {
+      display: inline-flex;
+      align-items: center;
+      background: #e0f2fe;
+      color: #0369a1;
+      border-radius: 999px;
+      padding: 10px 14px;
+      margin: 6px 8px 6px 0;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border: 1px solid #bae6fd;
+    }
+
+    .hero-summary {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(140px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .hero-pill {
+      padding: 12px 16px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #3730a3;
+      font-weight: 600;
+      border: 1px solid #c7d2fe;
+      text-align: center;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      max-width: 100%;
+      padding: 14px 16px;
+      font-size: 0.95rem;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      background: #fafbfc;
+      transition: border-color 0.2s ease;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: #0b7285;
+      background: white;
+    }
+
+    textarea {
+      min-height: 130px;
+      resize: vertical;
+    }
+
+    button {
+      padding: 12px 18px;
+      margin: 0;
+      cursor: pointer;
+      border: none;
+      border-radius: 12px;
+      background: #0b7285;
+      color: white;
+      font-weight: 600;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      background: #0f86a6;
+    }
+
+    button.secondary {
+      background: #475569;
+    }
+
+    button.danger {
+      background: #c92a2a;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .card-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(240px, 1fr));
+      gap: 20px;
+    }
+
+    .info-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 20px;
+      color: #334155;
+    }
+
+    .section-title {
+      font-size: 1.15rem;
+      margin-bottom: 16px;
+      color: #0f172a;
+    }
+
+    .card-description {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 14px;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(220px, 1fr));
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .feature-block {
+      background: white;
+      border-radius: 14px;
+      border: 1px solid #e2e8f0;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+    }
+
+    .feature-block h4 {
+      margin: 0 0 10px;
+      font-size: 1rem;
+    }
+
+    .feature-block ul {
+      margin: 0;
+      padding-left: 18px;
+      color: #475569;
+      line-height: 1.75;
+    }
+
+    .feature-block li {
+      margin-bottom: 10px;
+    }
+
+    .badge-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      color: #1e293b;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 20px;
+    }
+
+    .dashboard-grid > div {
+      min-height: 320px;
+    }
+
+    .template-switcher {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 16px 0 24px;
+    }
+
+    .template-switcher button {
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: #eff6ff;
+      border: 1px solid #dbeafe;
+      color: #1e3a8a;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .template-switcher button.active,
+    .template-switcher button:hover {
+      background: #bfdbfe;
+      border-color: #93c5fd;
+    }
+
+    canvas {
+      background: white;
+      padding: 14px;
+      border-radius: 16px;
+      width: 100% !important;
+      height: 320px !important;
+      box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.06);
+    }
+
+    pre {
+      background: #0f172a;
+      color: #d1fae5;
+      padding: 18px;
+      overflow-x: auto;
+      border-radius: 14px;
+      line-height: 1.6;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    th, td {
+      border-bottom: 1px solid #e2e8f0;
+      padding: 14px 12px;
+      text-align: left;
+    }
+
+    th {
+      background: #f8fafc;
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .template-task {
+      background: linear-gradient(135deg, #f8f9fa, #e7f5ff);
+    }
+
+    .template-task .kpi-card {
+      border-left: 6px solid #0b7285;
+    }
+
+    .template-analytical {
+      background: #0b1020;
+      color: white;
+      padding: 30px;
+      border-radius: 20px;
+    }
+
+    .template-analytical .kpi-card,
+    .template-analytical table,
+    .template-analytical canvas {
+      background: #151b2d;
+      color: white;
+      border: 1px solid #2f3b59;
+    }
+
+    .template-operational {
+      background: white;
+      border-top: 8px solid #2f9e44;
+      padding: 30px;
+      border-radius: 20px;
+    }
+
+    .template-operational .kpi-card {
+      border-top: 5px solid #2f9e44;
+    }
+
+    .template-strategic {
+      background: linear-gradient(135deg, #fff4e6, #f8f0fc);
+      padding: 30px;
+      border-radius: 20px;
+    }
+
+    .template-strategic .kpi-card {
+      border-left: 6px solid #e67700;
+    }
+
+    .template-tactical {
+      background: #1f1235;
+      color: white;
+      padding: 30px;
+      border-radius: 20px;
+    }
+
+    .template-tactical .kpi-card,
+    .template-tactical table,
+    .template-tactical canvas {
+      background: #2f1b52;
+      color: white;
+      border: 1px solid #7b2cbf;
+    }
+
+    .history-item {
+      border: 1px solid #e2e8f0;
+      padding: 14px;
+      margin: 12px 0;
+      background: #ffffff;
+      border-radius: 12px;
+    }
+
+    @media (max-width: 980px) {
+      .hero-card,
+      .dashboard-grid,
+      .card-grid,
+      .card-grid-3 {
+        grid-template-columns: 1fr;
+      }
+
+      canvas {
+        height: 260px !important;
+      }
+    }
+
+    @media (max-width: 640px) {
+      header {
+        padding: 22px 20px;
+      }
+
+      .container {
+        padding: 20px;
+      }
+
+      .hero-card {
+        gap: 18px;
+      }
+    }
+  </style>
+</head>
+
+<body class="theme-ocean">
+
+<header>
+  <h1>Nexus Data Platform</h1>
+  <p>AI-powered multi-agent DataOps automation platform</p>
+</header>
+
+<div class="container">
+
+    <div class="card">
+    <h3>Create Task</h3>
+
+    <input id="title" placeholder="Task title"><br><br>
+
+    <textarea id="description"
+      placeholder="Describe what you want the platform to do..."
+      style="height:120px"></textarea>
+
+    <br><br>
+
+    <button onclick="createTask()">Create Task</button>
+    <button onclick="runTask()">Run Task</button>
+    <button onclick="approveTask()">Approve</button>
+    <button onclick="deployTask()">Deploy</button>
+    <button onclick="getTask()" class="secondary">Refresh Status</button>
+  </div>
+
+  <div class="card">
+    <h3>Upload CSV Dataset</h3>
+    <input type="file" id="csvFile" accept=".csv">
+    <button onclick="processCSV()">Process CSV</button>
+    <p id="csvStatus"></p>
+  </div>
+
+  <div class="card">
+    <h3>Task ID</h3>
+    <p id="taskId"></p>
+
+    <h3>Current Status</h3>
+    <h2 id="status">Not Started</h2>
+  </div>
+
+  <div id="taskFeaturesCard" class="card task-features-card" style="display:none;">
+    <div class="section-title">Inferred Task Features</div>
+    <div id="taskFeatures"></div>
+  </div>
+
+  <div class="card">
+    <h3>Dashboard Templates</h3>
+
+    <select id="dashboardType" onchange="changeDashboard()">
+      <option value="task">Task Generated Dashboard</option>
+      <option value="analytical">Analytical Dashboard</option>
+      <option value="operational">Operational Dashboard</option>
+      <option value="strategic">Strategic Dashboard</option>
+      <option value="tactical">Tactical Dashboard</option>
+      <option value="powerbi">Power BI Dashboard</option>
+      <option value="tableau">Tableau Dashboard</option>
+    </select>
+
+    <br><br>
+
+    <button onclick="downloadDashboardHTML()">Download HTML</button>
+    <button onclick="downloadDashboardPDF()">Download PDF</button>
+    <button onclick="saveDashboardHistory()">Save to History</button>
+  </div>
+
+  <div class="card">
+    <h3>Interface style</h3>
+    <p class="card-description">Switch the dashboard palette and UI tone.</p>
+    <div class="theme-toggle">
+      <button type="button" class="theme-swatch ocean active" title="Ocean" onclick="applyTheme('ocean')"></button>
+      <button type="button" class="theme-swatch sunset" title="Sunset" onclick="applyTheme('sunset')"></button>
+      <button type="button" class="theme-swatch night" title="Night" onclick="applyTheme('night')"></button>
+      <button type="button" class="theme-swatch graphite" title="Graphite" onclick="applyTheme('graphite')"></button>
+    </div>
+  </div>
+
+  <div id="analyticsActionsCard" class="card" style="display:none;">
+    <div class="section-title">Analytics Dashboard Actions</div>
+    <p>These actions appear after deployment when the task requests a dashboard. Use them to choose a BI visual style and edit the rendered dashboard view.</p>
+    <div class="tool-buttons">
+      <button class="btn-tool btn-powerbi" onclick="handlePowerBIAction()">Power BI Edition</button>
+      <button class="btn-tool btn-tableau" onclick="handleTableauAction()">Tableau Edition</button>
+      <button class="btn-tool secondary" onclick="handleExportInsights()">Export Insights</button>
+    </div>
+    <div class="powerbi-builder">
+      <div class="powerbi-actions">
+        <div class="visual-picker">
+          <h4>Build visual</h4>
+          <div id="powerBiVisualGrid" class="visual-icon-grid"></div>
+        </div>
+        <div class="field-pane">
+          <h4>Y-axis fields</h4>
+          <div class="field-list" id="powerBiFieldList"></div>
+        </div>
+      </div>
+      <div class="powerbi-preview">
+        <h4>Live dashboard preview</h4>
+        <div id="powerBiPreview" class="preview-card"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="dashboardWrapper" class="card" style="display:none;">
+    <div id="dashboardSection">
+      <h2 id="dashboardTitle">Dashboard</h2>
+      <div class="template-switcher">
+        <button type="button" onclick="setDashboard('task')">Task</button>
+        <button type="button" onclick="setDashboard('analytical')">Analytical</button>
+        <button type="button" onclick="setDashboard('operational')">Operational</button>
+        <button type="button" onclick="setDashboard('strategic')">Strategic</button>
+        <button type="button" onclick="setDashboard('tactical')">Tactical</button>
+      </div>
+      <div class="kpi-grid" id="kpiCards"></div>
+
+      <br>
+
+      <div class="dashboard-grid">
+        <div>
+          <h3 id="chartOneTitle">Trend Analysis</h3>
+          <canvas id="chartOne"></canvas>
+        </div>
+
+        <div>
+          <h3 id="chartTwoTitle">Performance Analysis</h3>
+          <canvas id="chartTwo"></canvas>
+        </div>
+
+        <div>
+          <h3 id="chartThreeTitle">Category Split</h3>
+          <canvas id="chartThree"></canvas>
+        </div>
+
+        <div>
+          <h3>Summary Table</h3>
+          <table>
+            <thead id="summaryHead"></thead>
+            <tbody id="summaryTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Dashboard History</h3>
+    <div id="dashboardHistory"></div>
+  </div>
+
+  <div class="card">
+    <h3>Selected Agents</h3>
+    <div id="selectedAgents"></div>
+  </div>
+
+  <div class="card">
+    <h3>Agent Results</h3>
+    <div id="agentStatus"></div>
+  </div>
+
+  <div class="card">
+    <h3>Full Response</h3>
+    <pre id="result"></pre>
+  </div>
+
+</div>
+
+<script>
+const API = "http://127.0.0.1:8000";
+
+let taskId = "";
+let csvDashboardData = null;
+
+let chartOneInstance = null;
+let chartTwoInstance = null;
+let chartThreeInstance = null;
+
+const dashboardTemplates = {
+  task: {
+    type: "task",
+    title: "Task Generated Dashboard",
+    kpis: [
+      { name: "Monthly Revenue", value: "$120,000", trend: "+12%" },
+      { name: "Customer Growth", value: "18%", trend: "+4%" },
+      { name: "Regional Sales", value: "$78,000", trend: "+9%" }
+    ],
+    tableHeaders: ["Area", "Value", "Change"],
+    table: [
+      ["North", "$42,000", "+8%"],
+      ["South", "$78,000", "+12%"],
+      ["East", "$55,000", "+6%"],
+      ["West", "$61,000", "+9%"]
+    ],
+    chartOneType: "line",
+    chartTwoType: "bar",
+    chartThreeType: "doughnut",
+    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+    chartOne: [12000, 18000, 22000, 17000, 26000, 31000],
+    chartTwo: [5, 8, 11, 10, 14, 18],
+    chartThreeLabels: ["North", "South", "East", "West"],
+    chartThree: [42000, 78000, 55000, 61000]
+  },
+
+  analytical: {
+    type: "analytical",
+    title: "Analytical Dashboard",
+    kpis: [
+      { name: "Forecast Accuracy", value: "89%", trend: "+7%" },
+      { name: "Anomaly Count", value: "14", trend: "-18%" },
+      { name: "Data Quality Score", value: "94%", trend: "+5%" },
+      { name: "Variance Rate", value: "4.1%", trend: "-2%" }
+    ],
+    tableHeaders: ["Metric", "Value", "Insight"],
+    table: [
+      ["Sales Forecast", "89%", "Improving"],
+      ["Customer Churn", "8.2%", "Needs Review"],
+      ["Revenue Variance", "4.1%", "Stable"],
+      ["Data Quality", "94%", "Strong"]
+    ],
+    chartOneType: "line",
+    chartTwoType: "radar",
+    chartThreeType: "bar",
+    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+    chartOne: [70, 76, 81, 85, 87, 89],
+    chartTwo: [89, 82, 94, 76, 88],
+    chartThreeLabels: ["Forecast", "Churn", "Quality", "Variance"],
+    chartThree: [89, 82, 94, 76]
+  },
+
+  operational: {
+    type: "operational",
+    title: "Operational Dashboard",
+    kpis: [
+      { name: "Active Tasks", value: "128", trend: "+9%" },
+      { name: "Success Rate", value: "96%", trend: "+3%" },
+      { name: "Avg Processing Time", value: "2.4 sec", trend: "-12%" },
+      { name: "Open Incidents", value: "7", trend: "-30%" }
+    ],
+    tableHeaders: ["Service", "Status", "SLA"],
+    table: [
+      ["Data Pipeline", "Running", "98%"],
+      ["API Services", "Healthy", "95%"],
+      ["QA Checks", "Passed", "97%"],
+      ["Deployments", "Stable", "94%"]
+    ],
+    chartOneType: "bar",
+    chartTwoType: "line",
+    chartThreeType: "doughnut",
+    labels: ["8 AM", "10 AM", "12 PM", "2 PM", "4 PM", "6 PM"],
+    chartOne: [80, 95, 110, 98, 120, 128],
+    chartTwo: [88, 91, 93, 94, 95, 96],
+    chartThreeLabels: ["Pipeline", "API", "QA", "Deploy"],
+    chartThree: [42, 31, 28, 27]
+  },
+
+  strategic: {
+    type: "strategic",
+    title: "Strategic Dashboard",
+    kpis: [
+      { name: "Annual Revenue", value: "$9.2M", trend: "+22%" },
+      { name: "Market Share", value: "18%", trend: "+5%" },
+      { name: "Customer Retention", value: "92%", trend: "+4%" },
+      { name: "Growth Target", value: "87%", trend: "+11%" }
+    ],
+    tableHeaders: ["Region", "Revenue", "Growth"],
+    table: [
+      ["North America", "$3.4M", "+18%"],
+      ["Europe", "$2.1M", "+11%"],
+      ["Asia", "$2.7M", "+24%"],
+      ["Other", "$1.0M", "+9%"]
+    ],
+    chartOneType: "line",
+    chartTwoType: "bar",
+    chartThreeType: "pie",
+    labels: ["Q1", "Q2", "Q3", "Q4", "Next Q1", "Next Q2"],
+    chartOne: [900000, 1200000, 1600000, 2100000, 2800000, 3400000],
+    chartTwo: [70, 76, 81, 86, 89, 92],
+    chartThreeLabels: ["North America", "Europe", "Asia", "Other"],
+    chartThree: [3400000, 2100000, 2700000, 1000000]
+  },
+
+  tactical: {
+    type: "tactical",
+    title: "Tactical Dashboard",
+    kpis: [
+      { name: "Sprint Tasks", value: "64", trend: "+11%" },
+      { name: "Open Issues", value: "9", trend: "-25%" },
+      { name: "Deployment Readiness", value: "92%", trend: "+8%" },
+      { name: "Team Velocity", value: "86%", trend: "+6%" }
+    ],
+    tableHeaders: ["Team", "Tasks", "Readiness"],
+    table: [
+      ["Backend", "18 tasks", "96%"],
+      ["Data Engineering", "22 tasks", "91%"],
+      ["QA", "13 tasks", "95%"],
+      ["DevOps", "11 tasks", "92%"]
+    ],
+    chartOneType: "bar",
+    chartTwoType: "line",
+    chartThreeType: "radar",
+    labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    chartOne: [30, 38, 42, 49, 57, 64],
+    chartTwo: [18, 15, 13, 12, 10, 9],
+    chartThreeLabels: ["Backend", "Data", "QA", "DevOps", "Release"],
+    chartThree: [96, 91, 95, 92, 86]
+  },
+
+  powerbi: {
+    type: "powerbi",
+    title: "Power BI Dashboard",
+    kpis: [
+      { name: "Revenue Impact", value: "$1.1M", trend: "+16%" },
+      { name: "Cost Efficiency", value: "82%", trend: "+5%" },
+      { name: "Pipeline Health", value: "94%", trend: "+3%" },
+      { name: "Adoption Rate", value: "71%", trend: "+9%" }
+    ],
+    tableHeaders: ["Dimension", "Value", "Change"],
+    table: [
+      ["Sales", "$1.1M", "+16%"],
+      ["Marketing", "$420K", "+11%"],
+      ["Operations", "$310K", "+8%"],
+      ["Support", "$230K", "+5%"]
+    ],
+    chartOneType: "line",
+    chartTwoType: "bar",
+    chartThreeType: "pie",
+    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+    chartOne: [110, 125, 140, 162, 178, 195],
+    chartTwo: [24, 28, 32, 36, 40, 45],
+    chartThreeLabels: ["Sales", "Marketing", "Operations", "Support"],
+    chartThree: [45, 25, 18, 12]
+  },
+
+  tableau: {
+    type: "tableau",
+    title: "Tableau Dashboard",
+    kpis: [
+      { name: "Insight Score", value: "92", trend: "+12%" },
+      { name: "User Engagement", value: "68%", trend: "+9%" },
+      { name: "Conversion", value: "5.2%", trend: "+1.3%" },
+      { name: "Retention", value: "81%", trend: "+4%" }
+    ],
+    tableHeaders: ["Segment", "Engagement", "Change"],
+    table: [
+      ["Enterprise", "78%", "+10%"],
+      ["SMB", "63%", "+8%"],
+      ["Retail", "54%", "+6%"],
+      ["Channel", "69%", "+5%"]
+    ],
+    chartOneType: "bar",
+    chartTwoType: "radar",
+    chartThreeType: "doughnut",
+    labels: ["Q1", "Q2", "Q3", "Q4", "Q5", "Q6"],
+    chartOne: [52, 61, 72, 79, 84, 92],
+    chartTwo: [92, 88, 95, 82, 90, 94],
+    chartThreeLabels: ["Enterprise", "SMB", "Retail", "Channel"],
+    chartThree: [32, 20, 18, 30]
+  }
+};
+
+function getCurrentTemplate() {
+  const selectedType = document.getElementById("dashboardType").value;
+
+  if (selectedType === "task" && csvDashboardData) {
+    return csvDashboardData;
+  }
+
+  return dashboardTemplates[selectedType] || dashboardTemplates.task;
+}
+
+const powerBiVisualOptions = [
+  { id: "line", icon: "📈", label: "Line chart", type: "line", fill: false },
+  { id: "area", icon: "📊", label: "Area chart", type: "line", fill: true },
+  { id: "bar", icon: "📊", label: "Bar chart", type: "bar" },
+  { id: "pie", icon: "🥧", label: "Pie chart", type: "pie" },
+  { id: "doughnut", icon: "🍩", label: "Doughnut", type: "doughnut" },
+  { id: "radar", icon: "🕸️", label: "Radar chart", type: "radar" }
+];
+
+const powerBiFields = [
+  "Revenue",
+  "Cost",
+  "Customer Growth",
+  "Retention",
+  "Forecast Accuracy",
+  "Conversion"
+];
+
+let selectedPowerBiVisual = "bar";
+
+function renderPowerBiVisualLibrary() {
+  const grid = document.getElementById("powerBiVisualGrid");
+  if (!grid) return;
+
+  grid.innerHTML = powerBiVisualOptions.map(option => `
+    <div class="visual-icon ${selectedPowerBiVisual === option.id ? "active" : ""}" onclick="selectPowerBiVisual('${option.id}')">
+      <span>${option.icon}</span>
+      <div>${option.label}</div>
+    </div>
+  `).join("");
+}
+
+function renderPowerBiFields() {
+  const list = document.getElementById("powerBiFieldList");
+  if (!list) return;
+
+  list.innerHTML = powerBiFields.map(field => `
+    <span class="field-pill">${field}</span>
+  `).join("");
+  renderPowerBiPreview();
+}
+
+function renderPowerBiPreview() {
+  const preview = document.getElementById("powerBiPreview");
+  if (!preview) return;
+
+  const selectedOption = powerBiVisualOptions.find(option => option.id === selectedPowerBiVisual) || powerBiVisualOptions[0];
+  const previewFields = powerBiFields.slice(0, 3);
+
+  preview.innerHTML = `
+    <div class="preview-card">
+      <div class="preview-item">
+        <span class="label">Selected visual</span>
+        <strong>${selectedOption.label}</strong>
+        <span class="label">Chart design</span>
+        <strong>${selectedOption.type.toUpperCase()}</strong>
+      </div>
+      <div class="preview-item">
+        <span class="label">Example fields</span>
+        ${previewFields.map(field => `<span>${field}: ${generateFieldValue(field)}</span>`).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function generateFieldValue(field) {
+  switch (field.toLowerCase()) {
+    case "revenue":
+      return "$1.2M";
+    case "cost":
+      return "$420K";
+    case "customer growth":
+      return "18%";
+    case "retention":
+      return "71%";
+    case "forecast accuracy":
+      return "89%";
+    case "conversion":
+      return "5.2%";
+    default:
+      return "Ready";
+  }
+}
+
+function applyTheme(theme) {
+  const themes = ["ocean", "sunset", "night", "graphite"];
+  document.body.classList.remove(...themes.map(name => `theme-${name}`));
+  document.body.classList.add(`theme-${theme}`);
+  updateThemeSwatches(theme);
+}
+
+function updateThemeSwatches(theme) {
+  document.querySelectorAll(".theme-swatch").forEach(button => {
+    button.classList.toggle("active", button.classList.contains(theme));
+  });
+}
+
+function setDashboard(type) {
+  document.getElementById("dashboardType").value = type;
+  renderDashboard();
+}
+
+function updateSwitcher() {
+  const type = document.getElementById("dashboardType").value;
+  document.querySelectorAll(".template-switcher button").forEach(button => {
+    button.classList.toggle("active", button.textContent.toLowerCase() === type);
+  });
+}
+
+function changeDashboard() {
+  renderDashboard();
+}
+
+function handlePowerBIAction() {
+  document.getElementById("dashboardType").value = "powerbi";
+  selectedPowerBiVisual = "bar";
+  renderDashboard();
+  renderPowerBiVisualLibrary();
+  renderPowerBiFields();
+}
+
+function handleTableauAction() {
+  document.getElementById("dashboardType").value = "tableau";
+  selectedPowerBiVisual = "line";
+  renderDashboard();
+  renderPowerBiVisualLibrary();
+  renderPowerBiFields();
+}
+
+function handleExportInsights() {
+  if (document.getElementById("dashboardWrapper").style.display === "none") {
+    alert("Generate the dashboard first to export insights.");
+    return;
+  }
+  downloadDashboardPDF();
+}
+
+function selectPowerBiVisual(id) {
+  selectedPowerBiVisual = id;
+  const option = powerBiVisualOptions.find(item => item.id === id);
+  if (!option) return;
+
+  const template = getCurrentTemplate();
+  template.chartOneType = option.type;
+  template.chartTwoType = option.type === "pie" || option.type === "doughnut" ? "bar" : option.type;
+  template.chartThreeType = option.type === "pie" || option.type === "doughnut" ? option.type : "doughnut";
+  template.chartOneFill = option.fill || false;
+
+  renderPowerBiVisualLibrary();
+  renderDashboard();
+}
+
+function renderDashboard() {
+  updateSwitcher();
+  const template = getCurrentTemplate();
+
+  document.getElementById("dashboardWrapper").style.display = "block";
+  if (document.getElementById("analyticsActionsCard").style.display === "block") {
+    renderPowerBiVisualLibrary();
+    renderPowerBiFields();
+  }
+
+  const dashboard = document.getElementById("dashboardSection");
+  dashboard.className = "";
+  dashboard.classList.add("template-" + template.type);
+
+  document.getElementById("dashboardTitle").innerText = template.title;
+
+  document.getElementById("kpiCards").innerHTML = template.kpis.map(kpi => `
+    <div class="kpi-card">
+      <h4>${kpi.name}</h4>
+      <h2>${kpi.value}</h2>
+      <p>${kpi.trend}</p>
+    </div>
+  `).join("");
+
+  document.getElementById("summaryHead").innerHTML = `
+    <tr>
+      ${template.tableHeaders.map(h => `<th>${h}</th>`).join("")}
+    </tr>
+  `;
+
+  document.getElementById("summaryTable").innerHTML = template.table.map(row => `
+    <tr>
+      ${row.map(col => `<td>${col}</td>`).join("")}
+    </tr>
+  `).join("");
+
+  if (chartOneInstance) chartOneInstance.destroy();
+  if (chartTwoInstance) chartTwoInstance.destroy();
+  if (chartThreeInstance) chartThreeInstance.destroy();
+
+  const chartOneType = template.chartOneType === "area" ? "line" : template.chartOneType;
+  const chartOneConfig = {
+    type: chartOneType,
+    data: {
+      labels: template.labels,
+      datasets: [{
+        label: "Trend",
+        data: template.chartOne,
+        backgroundColor: template.chartOneType === "area" ? "rgba(11, 114, 133, 0.18)" : undefined,
+        borderColor: "#0b7285",
+        fill: template.chartOneType === "area"
+      }]
+    }
+  };
+
+  chartOneInstance = new Chart(document.getElementById("chartOne"), chartOneConfig);
+
+  chartTwoInstance = new Chart(document.getElementById("chartTwo"), {
+    type: template.chartTwoType,
+    data: {
+      labels: template.labels,
+      datasets: [{
+        label: "Performance",
+        data: template.chartTwo,
+        backgroundColor: "rgba(11, 114, 133, 0.18)",
+        borderColor: "#0b7285"
+      }]
+    }
+  });
+
+  chartThreeInstance = new Chart(document.getElementById("chartThree"), {
+    type: template.chartThreeType,
+    data: {
+      labels: template.chartThreeLabels,
+      datasets: [{
+        label: "Split",
+        data: template.chartThree,
+        backgroundColor: [
+          "#0b7285",
+          "#22b8cf",
+          "#5c7cfa",
+          "#c92a2a",
+          "#fab005",
+          "#37b24d"
+        ]
+      }]
+    }
+  });
+}
+
+function processCSV() {
+  const file = document.getElementById("csvFile").files[0];
+
+  if (!file) {
+    alert("Please select a CSV file first.");
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = function(e) {
+    const text = e.target.result;
+    const rows = text.trim().split("\n").map(row => row.split(","));
+
+    const headers = rows[0].map(h => h.trim().toLowerCase());
+    const dataRows = rows.slice(1);
+
+    let amountIndex = headers.findIndex(h => ["amount", "revenue", "sales", "total"].includes(h));
+    let regionIndex = headers.findIndex(h => ["region", "area", "location"].includes(h));
+    let customerIndex = headers.findIndex(h => ["customer", "customer_id", "client"].includes(h));
+    let monthIndex = headers.findIndex(h => ["month", "date"].includes(h));
+
+    if (amountIndex === -1) amountIndex = 0;
+
+    let totalRevenue = 0;
+    let regionMap = {};
+    let monthMap = {};
+    let customers = new Set();
+
+    dataRows.forEach(row => {
+      const amount = parseFloat((row[amountIndex] || "0").replace(/[^0-9.-]/g, "")) || 0;
+      totalRevenue += amount;
+
+      const region = regionIndex >= 0 && row[regionIndex] ? row[regionIndex] : "General";
+      regionMap[region] = (regionMap[region] || 0) + amount;
+
+      const month = monthIndex >= 0 && row[monthIndex] ? row[monthIndex] : "Data";
+      monthMap[month] = (monthMap[month] || 0) + amount;
+
+      if (customerIndex >= 0 && row[customerIndex]) {
+        customers.add(row[customerIndex]);
+      }
+    });
+
+    const regionLabels = Object.keys(regionMap).slice(0, 4);
+    const regionValues = Object.values(regionMap).slice(0, 4);
+
+    const monthValues = Object.values(monthMap).slice(0, 6);
+    while (monthValues.length < 6) monthValues.push(0);
+
+    csvDashboardData = {
+      type: "task",
+      title: "Task Generated Dashboard From CSV",
+      kpis: [
+        { name: "Total Revenue", value: "$" + Math.round(totalRevenue).toLocaleString(), trend: "CSV Data" },
+        { name: "Total Records", value: dataRows.length.toString(), trend: "Processed" },
+        { name: "Customers", value: (customers.size || dataRows.length).toString(), trend: "Detected" },
+        { name: "Regions", value: regionLabels.length.toString(), trend: "Detected" }
+      ],
+      tableHeaders: ["Region", "Revenue", "Source"],
+      table: regionLabels.map(label => [
+        label,
+        "$" + Math.round(regionMap[label]).toLocaleString(),
+        "CSV"
+      ]),
+      chartOneType: "line",
+      chartTwoType: "bar",
+      chartThreeType: "doughnut",
+      labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+      chartOne: monthValues,
+      chartTwo: monthValues.map(v => Math.round(v / 1000)),
+      chartThreeLabels: regionLabels,
+      chartThree: regionValues
+    };
+
+    document.getElementById("dashboardType").value = "task";
+    document.getElementById("csvStatus").innerText = "CSV processed successfully.";
+    renderDashboard();
+  };
+
+  reader.readAsText(file);
+}
+
+function downloadDashboardHTML() {
+  const template = getCurrentTemplate();
+
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+<title>${template.title}</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"><\/script>
+<style>
+body { font-family: Arial, sans-serif; background:#f4f6f8; padding:25px; }
+.kpi-grid { display:flex; gap:15px; flex-wrap:wrap; }
+.kpi-card { background:white; padding:18px; width:220px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,.1); }
+.dashboard-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.card { background:white; padding:18px; margin:15px 0; border-radius:8px; }
+canvas { background:white; padding:12px; border-radius:8px; }
+table { width:100%; border-collapse:collapse; background:white; }
+th, td { border:1px solid #ddd; padding:8px; }
+</style>
+</head>
+<body>
+<h1>${template.title}</h1>
+
+<div class="kpi-grid">
+${template.kpis.map(kpi => `
+<div class="kpi-card">
+<h4>${kpi.name}</h4>
+<h2>${kpi.value}</h2>
+<p>${kpi.trend}</p>
+</div>
+`).join("")}
+</div>
+
+<div class="dashboard-grid">
+<div class="card"><h3>Trend Analysis</h3><canvas id="d1"></canvas></div>
+<div class="card"><h3>Performance Analysis</h3><canvas id="d2"></canvas></div>
+<div class="card"><h3>Category Split</h3><canvas id="d3"></canvas></div>
+<div class="card">
+<h3>Summary Table</h3>
+<table>
+<thead><tr>${template.tableHeaders.map(h => `<th>${h}</th>`).join("")}</tr></thead>
+<tbody>
+${template.table.map(row => `<tr>${row.map(col => `<td>${col}</td>`).join("")}</tr>`).join("")}
+</tbody>
+</table>
+</div>
+</div>
+
+<script>
+new Chart(document.getElementById("d1"), {
+  type: "${template.chartOneType}",
+  data: {
+    labels: ${JSON.stringify(template.labels)},
+    datasets: [{ label: "Trend", data: ${JSON.stringify(template.chartOne)} }]
+  }
+});
+new Chart(document.getElementById("d2"), {
+  type: "${template.chartTwoType}",
+  data: {
+    labels: ${JSON.stringify(template.labels)},
+    datasets: [{ label: "Performance", data: ${JSON.stringify(template.chartTwo)} }]
+  }
+});
+new Chart(document.getElementById("d3"), {
+  type: "${template.chartThreeType}",
+  data: {
+    labels: ${JSON.stringify(template.chartThreeLabels)},
+    datasets: [{ label: "Split", data: ${JSON.stringify(template.chartThree)} }]
+  }
+});
+<\/script>
+</body>
+</html>
+`;
+
+  const blob = new Blob([htmlContent], { type: "text/html" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `${template.title.replaceAll(" ", "_")}.html`;
+  link.click();
+}
+
+async function downloadDashboardPDF() {
+  const dashboard = document.getElementById("dashboardSection");
+
+  if (document.getElementById("dashboardWrapper").style.display === "none") {
+    alert("Please generate dashboard first.");
+    return;
+  }
+
+  const canvas = await html2canvas(dashboard);
+  const imgData = canvas.toDataURL("image/png");
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF("landscape", "mm", "a4");
+
+  const width = pdf.internal.pageSize.getWidth();
+  const height = (canvas.height * width) / canvas.width;
+
+  pdf.addImage(imgData, "PNG", 0, 10, width, height);
+  pdf.save("Nexus_Dashboard.pdf");
+}
+
+function saveDashboardHistory() {
+  const template = getCurrentTemplate();
+
+  let history = JSON.parse(localStorage.getItem("dashboardHistory") || "[]");
+
+  history.push({
+    id: Date.now(),
+    title: template.title,
+    type: template.type,
+    data: template
+  });
+
+  localStorage.setItem("dashboardHistory", JSON.stringify(history));
+  renderHistory();
+}
+
+function renderHistory() {
+  const history = JSON.parse(localStorage.getItem("dashboardHistory") || "[]");
+
+  if (history.length === 0) {
+    document.getElementById("dashboardHistory").innerHTML = "<p>No saved dashboards yet.</p>";
+    return;
+  }
+
+  document.getElementById("dashboardHistory").innerHTML = history.map(item => `
+    <div class="history-item">
+      <b>${item.title}</b><br>
+      Type: ${item.type}<br><br>
+      <button onclick="openHistory(${item.id})">Open</button>
+      <button class="danger" onclick="removeHistory(${item.id})">Remove</button>
+    </div>
+  `).join("");
+}
+
+function openHistory(id) {
+  const history = JSON.parse(localStorage.getItem("dashboardHistory") || "[]");
+  const item = history.find(h => h.id === id);
+
+  if (item) {
+    csvDashboardData = item.data;
+    document.getElementById("dashboardType").value = "task";
+    renderDashboard();
+  }
+}
+
+function removeHistory(id) {
+  let history = JSON.parse(localStorage.getItem("dashboardHistory") || "[]");
+  history = history.filter(h => h.id !== id);
+  localStorage.setItem("dashboardHistory", JSON.stringify(history));
+  renderHistory();
+}
+
+function deriveFeatures(description = "") {
+  const text = description.toLowerCase();
+  const features = new Set();
+
+  if (/database|api|spreadsheet|survey|crm|erp|analytics/.test(text)) {
+    features.add("Data Collection");
+  }
+  if (/duplicate|missing|clean|wrangl|standardize|format|normalize/.test(text)) {
+    features.add("Data Cleaning");
+  }
+  if (/trend|pattern|correlation|statistic|analysis|forecast|model/.test(text)) {
+    features.add("Data Analysis");
+  }
+  if (/chart|dashboard|visual|report|present|infograph|tableau|power bi/.test(text)) {
+    features.add("Data Visualization");
+  }
+  if (/stakeholder|recommend|communicat|insight|business review|presentation/.test(text)) {
+    features.add("Reporting & Communication");
+  }
+  if (/sql|nosql|database|dataset|extract|manipulat|integrit|postgres|mysql|bigquery/.test(text)) {
+    features.add("Database Management");
+  }
+  if (/kpi|goal|objective|business|align|decision|planning/.test(text)) {
+    features.add("Business Understanding");
+  }
+  if (/automate|script|optimi|reusable|workflow|process|pipeline/.test(text)) {
+    features.add("Automation & Optimization");
+  }
+
+  if (features.size === 0) {
+    features.add("Data Collection");
+    features.add("Data Cleaning");
+    features.add("Data Analysis");
+    features.add("Data Visualization");
+  }
+
+  return Array.from(features);
+}
+
+function renderTaskFeatures(description) {
+  const taskFeatures = deriveFeatures(description || "");
+  document.getElementById("taskFeatures").innerHTML = taskFeatures.map(feature => `
+    <span class="feature-tag">${feature}</span>
+  `).join("");
+  document.getElementById("taskFeaturesCard").style.display = "block";
+}
+
+function hideTaskFeatures() {
+  document.getElementById("taskFeaturesCard").style.display = "none";
+  document.getElementById("taskFeatures").innerHTML = "";
+}
+
+function shouldShowDashboardActions(description) {
+  return /dashboard|tableau|power bi|visual|chart|report|analytics/.test(description.toLowerCase());
+}
+
+function showAnalyticsActions() {
+  document.getElementById("analyticsActionsCard").style.display = "block";
+}
+
+function hideAnalyticsActions() {
+  document.getElementById("analyticsActionsCard").style.display = "none";
+}
+
+function updateAnalyticsActions(data) {
+  const description = data.description || document.getElementById("description").value;
+  if (data.status === "DEPLOYED" && shouldShowDashboardActions(description)) {
+    showAnalyticsActions();
+  } else {
+    hideAnalyticsActions();
+  }
+}
+
+function updateTaskFeatures(data) {
+  if (data.status === "DEPLOYED") {
+    renderTaskFeatures(data.description || document.getElementById("description").value);
+  } else {
+    hideTaskFeatures();
+  }
+}
+
+function showResult(data) {
+  document.getElementById("result").innerText = JSON.stringify(data, null, 2);
+  document.getElementById("status").innerText = data.status || "UNKNOWN";
+
+  let agentsHtml = "";
+
+  if (data.selected_agents) {
+    agentsHtml = data.selected_agents.map(a => `<li>${a}</li>`).join("");
+  }
+
+  document.getElementById("selectedAgents").innerHTML = `<ul>${agentsHtml}</ul>`;
+
+  updateTaskFeatures(data);
+  updateAnalyticsActions(data);
+
+  let resultHtml = "";
+
+  if (data.results && data.results.length > 0) {
+    data.results.forEach(agent => {
+      resultHtml += `
+        <div style="border:1px solid #ccc;padding:10px;margin:10px;background:white;">
+          <b>${agent.agent_name}</b><br>
+          Role: ${agent.role}<br>
+          Status: ${agent.status}<br>
+          Summary: ${agent.summary}
+        </div>
+      `;
+    });
+
+    renderDashboard();
+  } else {
+    resultHtml = "<p>No results available yet.</p>";
+  }
+
+  document.getElementById("agentStatus").innerHTML = resultHtml;
+}
+
+async function createTask() {
+  document.getElementById("dashboardWrapper").style.display = "none";
+
+  const res = await fetch(`${API}/tasks`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      title: document.getElementById("title").value,
+      description: document.getElementById("description").value
+    })
+  });
+
+  const data = await res.json();
+  taskId = data.task_id;
+  document.getElementById("taskId").innerText = taskId;
+  showResult(data);
+}
+
+async function runTask() {
+  const res = await fetch(`${API}/tasks/${taskId}/run`, { method: "POST" });
+  const data = await res.json();
+  showResult(data);
+}
+
+async function approveTask() {
+  const res = await fetch(`${API}/tasks/${taskId}/approval`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      approved: true,
+      comments: "Approved from dashboard"
+    })
+  });
+
+  const data = await res.json();
+  showResult(data);
+}
+
+async function deployTask() {
+  const res = await fetch(`${API}/tasks/${taskId}/deploy`, { method: "POST" });
+  const data = await res.json();
+  showResult(data);
+}
+
+async function getTask() {
+  const res = await fetch(`${API}/tasks/${taskId}`);
+  const data = await res.json();
+  showResult(data);
+}
+
+renderHistory();
+</script>
+
+</body>
+</html>
