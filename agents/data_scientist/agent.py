@@ -9,9 +9,15 @@ class DataScientistAgent(BaseAgent):
     name = "Data Scientist Agent"
     role = "Data Scientist"
 
+    category = "AI & Data Science"
+
     def run(self, context: Dict[str, Any]) -> AgentResult:
+        from agents.capabilities import duties_for_category
+
         task = context.get("description", "")
         outputs = {
+            "domain": self.category,
+            "capabilities_covered": duties_for_category(self.category),
             "responsibilities_completed": [
                 "Creates ML-ready features, model plan, evaluation approach, and prediction strategy.",
                 "Generated implementation steps for the requested workflow.",
