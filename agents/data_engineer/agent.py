@@ -9,9 +9,15 @@ class DataEngineerAgent(BaseAgent):
     name = "Data Engineer Agent"
     role = "Data Engineer"
 
+    category = "Data Engineering"
+
     def run(self, context: Dict[str, Any]) -> AgentResult:
+        from agents.capabilities import duties_for_category
+
         task = context.get("description", "")
         outputs = {
+            "domain": self.category,
+            "capabilities_covered": duties_for_category(self.category),
             "responsibilities_completed": [
                 "Builds ingestion, ETL, validation, and data loading steps.",
                 "Generated implementation steps for the requested workflow.",
