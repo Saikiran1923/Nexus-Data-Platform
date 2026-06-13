@@ -1,5 +1,3 @@
-from fastapi.testclient import TestClient
-
 from agents.capabilities import (
     CATEGORY_AGENTS,
     ENTERPRISE_CAPABILITIES,
@@ -7,11 +5,7 @@ from agents.capabilities import (
     total_capability_count,
 )
 from agents.orchestrator.orchestrator import OrchestratorAgent
-from backend.main import app
 
-client = TestClient(app)
-
-# Expected duty counts per category, derived directly from the enterprise duty list.
 EXPECTED_COUNTS = {
     "Program & Portfolio Management": 20,
     "Service Management": 17,
@@ -46,32 +40,32 @@ def test_every_category_has_registered_owning_agent():
         assert agent_key in orchestrator.registry, category
 
 
-def test_capabilities_endpoint():
-    response = client.get("/capabilities")
+def test_capabilities_endpoint(client, auth_headers):
+    response = client.get("/api/v1/capabilities", headers=auth_headers)
     assert response.status_code == 200
-    data = response.json()
+    data = response.json()["data"]
     assert data["total_categories"] == len(EXPECTED_COUNTS)
     assert data["total_capabilities"] == sum(EXPECTED_COUNTS.values())
     returned = {c["category"]: c["duty_count"] for c in data["categories"]}
     assert returned == EXPECTED_COUNTS
 
 
-def test_capability_category_endpoint_case_insensitive():
-    response = client.get("/capabilities/security")
+def test_capability_category_endpoint_case_insensitive(client, auth_headers):
+    response = client.get("/api/v1/capabilities/security", headers=auth_headers)
     assert response.status_code == 200
-    data = response.json()
+    data = response.json()["data"]
     assert data["category"] == "Security"
     assert "Zero Trust" in data["duties"]
 
 
-def test_capability_category_endpoint_unknown():
-    assert client.get("/capabilities/does-not-exist").status_code == 404
+def test_capability_category_endpoint_unknown(client, auth_headers):
+    assert client.get("/api/v1/capabilities/does-not-exist", headers=auth_headers).status_code == 404
 
 
-def test_agents_endpoint_lists_all_agents():
-    response = client.get("/agents")
+def test_agents_endpoint_lists_all_agents(client, auth_headers):
+    response = client.get("/api/v1/agents", headers=auth_headers)
     assert response.status_code == 200
-    data = response.json()
+    data = response.json()["data"]
     assert data["total_agents"] == 18
     keys = {a["key"] for a in data["agents"]}
     for agent_key in CATEGORY_AGENTS.values():
@@ -104,27 +98,35 @@ def test_orchestrator_routes_enterprise_keywords():
         assert expected in selected, expected
 
 
-def test_enterprise_task_flow_reaches_deployment():
-    create = client.post("/tasks", json={
-        "title": "Enterprise DataOps Program",
-        "description": (
-            "Run a SAP S/4HANA data migration with data governance, MDM, AWS and "
-            "Azure cloud pipelines, security controls, incident management and "
-            "executive dashboards for a banking client."
-        ),
-    })
+def test_enterprise_task_flow_reaches_deployment(client, auth_headers):
+    create = client.post(
+        "/api/v1/tasks",
+        json={
+            "title": "Enterprise DataOps Program",
+            "description": (
+                "Run a SAP S/4HANA data migration with data governance, MDM, AWS and "
+                "Azure cloud pipelines, security controls, incident management and "
+                "executive dashboards for a banking client."
+            ),
+        },
+        headers=auth_headers,
+    )
     assert create.status_code == 200
-    task_id = create.json()["task_id"]
+    task_id = create.json()["data"]["task_id"]
 
-    run = client.post(f"/tasks/{task_id}/run")
+    run = client.post(f"/api/v1/tasks/{task_id}/run", headers=auth_headers)
     assert run.status_code == 200
-    assert run.json()["status"] == "WAITING_FOR_APPROVAL"
-    assert run.json()["qa_passed"] is True
+    assert run.json()["data"]["status"] == "WAITING_FOR_APPROVAL"
+    assert run.json()["data"]["qa_passed"] is True
 
-    approve = client.post(f"/tasks/{task_id}/approval", json={"approved": True})
+    approve = client.post(
+        f"/api/v1/tasks/{task_id}/approval",
+        json={"approved": True},
+        headers=auth_headers,
+    )
     assert approve.status_code == 200
-    assert approve.json()["status"] == "APPROVED"
+    assert approve.json()["data"]["status"] == "APPROVED"
 
-    deploy = client.post(f"/tasks/{task_id}/deploy")
+    deploy = client.post(f"/api/v1/tasks/{task_id}/deploy", headers=auth_headers)
     assert deploy.status_code == 200
-    assert deploy.json()["status"] == "DEPLOYED"
+    assert deploy.json()["data"]["status"] == "DEPLOYED"
