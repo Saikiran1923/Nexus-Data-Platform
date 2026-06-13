@@ -1,4 +1,33 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: nexus-postgres
+    environment:
+      POSTGRES_USER: nexus
+      POSTGRES_PASSWORD: nexus
+      POSTGRES_DB: nexus
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexus -d nexus"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: nexus-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   nexus-api:
     build:
       context: ..
@@ -7,4 +36,40 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - ENVIRONMENT=local
+      ENVIRONMENT: local
+      DATABASE_URL: postgresql://nexus:nexus@postgres:5432/nexus
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      JWT_SECRET_KEY: change-me-in-production-use-long-random-secret
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - upload_data:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  nexus-worker:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: nexus-celery-worker
+    command: ["celery", "-A", "backend.workers.celery_app:celery_app", "worker", "--loglevel=info"]
+    environment:
+      ENVIRONMENT: local
+      DATABASE_URL: postgresql://nexus:nexus@postgres:5432/nexus
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - upload_data:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  upload_data:
