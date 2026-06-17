@@ -26,7 +26,7 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(
     title=settings.app_name,
-    description="Secure multi-tenant DataOps platform with JWT auth, RBAC, and audit logging.",
+    description="Nexus One — Enterprise Autonomous Execution Operating System with AI workforce, mission control, and evidence engine.",
     version=settings.app_version,
     lifespan=lifespan,
 )
@@ -59,6 +59,7 @@ async def http_exception_handler(_: Request, exc: HTTPException) -> JSONResponse
 def root() -> dict:
     return {
         "project": settings.app_name,
+        "tagline": "Enterprise Autonomous Execution Operating System",
         "version": settings.app_version,
         "status": "running",
         "docs": "/docs",
