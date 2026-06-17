@@ -30,9 +30,22 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def init_db() -> None:
     from backend.db_models import audit_log, data_upload, dataset, role, task, tenant, user  # noqa: F401
+    from backend.db_models import nexus_one  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
     _seed_roles()
+    _seed_nexus_one()
+
+
+def _seed_nexus_one() -> None:
+    from backend.services.nexus_one_service import CouponService, SubscriptionService
+
+    db = SessionLocal()
+    try:
+        SubscriptionService.seed_plans(db)
+        CouponService.seed_coupons(db)
+    finally:
+        db.close()
 
 
 def _seed_roles() -> None:

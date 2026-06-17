@@ -11,7 +11,7 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
     """Reject unauthenticated requests to /api/v1 protected routes."""
 
     PUBLIC_EXACT = {"/", "/health", "/docs", "/redoc", "/openapi.json"}
-    PUBLIC_API = {"/api/v1/auth/signup", "/api/v1/auth/login"}
+    PUBLIC_API = {"/api/v1/auth/signup", "/api/v1/auth/login", "/api/v1/subscriptions/plans"}
 
     async def dispatch(self, request: Request, call_next):
         path = request.url.path

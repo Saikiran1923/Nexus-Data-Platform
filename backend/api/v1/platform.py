@@ -2,6 +2,24 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from agents.capabilities import (
+    build_capability_catalog,
+    duties_for_category,
+    list_categories,
+    total_capability_count,
+)
+from agents.orchestrator.orchestrator import OrchestratorAgent
+from backend.auth.dependencies import (
+    ROLE_ADMIN,
+    ROLE_APPROVER,
+    ROLE_DEVELOPER,
+    ROLE_REVIEWER,
+    ROLE_USER,
+    CurrentUser,
+    require_roles,
+)
+from backend.schemas.common import APIResponse
+
 router = APIRouter(tags=["platform"])
 
 

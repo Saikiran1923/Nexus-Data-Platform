@@ -10,7 +10,7 @@ celery_app = Celery(
     "nexus",
     broker=settings.celery_broker_url,
     backend=settings.celery_result_backend,
-    include=["backend.workers.file_processing"],
+    include=["backend.workers.file_processing", "backend.workers.objective_execution"],
 )
 
 celery_app.conf.update(
